@@ -21,10 +21,12 @@ import android.location.Location
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import com.getbase.floatingactionbutton.FloatingActionButton
+import com.getbase.floatingactionbutton.FloatingActionsMenu
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.MapFragment
 import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
@@ -34,13 +36,15 @@ class MainActivity : AppCompatActivity(), OnLocation, OnMapReadyCallback {
 
     protected val TAG = "MainActivity"
     lateinit private var mLocation: Location
+    lateinit private var mActionsMenu: FloatingActionsMenu
 
     override fun getLocation(location: Location) {
         Log.d(TAG, location.toString())
         mLocation = location
-        val fragment = MapFragment()
+        val fragment = SupportMapFragment()
         fragment.getMapAsync(this)
-        fragmentManager.beginTransaction().add(android.R.id.content, fragment).commit()
+        supportFragmentManager.beginTransaction().add(R.id.content, fragment).commit()
+        initializeActionsMenu()
     }
 
     override fun onMapReady(googleMap: GoogleMap?) {
@@ -57,8 +61,31 @@ class MainActivity : AppCompatActivity(), OnLocation, OnMapReadyCallback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
+        mActionsMenu = findViewById(R.id.actions_menu) as FloatingActionsMenu
         val fragment = LocationFragment()
         fragment.show(supportFragmentManager, "location")
+    }
+
+    fun initializeActionsMenu() {
+        val pokeStopMenu = FloatingActionButton(baseContext)
+        pokeStopMenu.setIcon(R.drawable.ic_menu_poke_stop)
+        pokeStopMenu.title = "PokeStop"
+        pokeStopMenu.size = FloatingActionButton.SIZE_MINI
+        pokeStopMenu.setOnClickListener {
+            val fragment = CreatePortalFragment.newPokeStopInstance(mLocation)
+            fragment.show(supportFragmentManager, "poke_stop")
+            mActionsMenu.collapse()
+        }
+        mActionsMenu.addButton(pokeStopMenu)
+        val gymMenu = FloatingActionButton(baseContext)
+        gymMenu.setIcon(R.drawable.ic_menu_gym)
+        gymMenu.title = "Gym"
+        gymMenu.size = FloatingActionButton.SIZE_MINI
+        gymMenu.setOnClickListener {
+            val fragment = CreatePortalFragment.newGymInstance(mLocation)
+            fragment.show(supportFragmentManager, "gym")
+            mActionsMenu.collapse()
+        }
+        mActionsMenu.addButton(gymMenu)
     }
 }
