@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">PokePortal</string>
+    <string name="map_api">map_api</string>
 </resources>
