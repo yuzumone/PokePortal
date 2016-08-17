@@ -15,8 +15,9 @@
  *
  */
 
-package net.yuzumone.pokeportal
+package net.yuzumone.pokeportal.fragment
 
+import android.Manifest
 import android.app.Dialog
 import android.app.ProgressDialog
 import android.content.Context
@@ -65,9 +66,9 @@ class LocationFragment : DialogFragment(),
 
     fun checkPermission() {
         if (ContextCompat.checkSelfPermission(activity,
-                android.Manifest.permission.ACCESS_FINE_LOCATION) !== PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(arrayOf<String>(android.Manifest.permission.ACCESS_FINE_LOCATION,
-                    android.Manifest.permission.ACCESS_COARSE_LOCATION), REQUEST_LOCATION)
+                Manifest.permission.ACCESS_FINE_LOCATION) !== PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf<String>(Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION), REQUEST_LOCATION)
         } else {
             mGoogleApiClient.connect()
         }
@@ -84,8 +85,7 @@ class LocationFragment : DialogFragment(),
     }
 
     @Synchronized protected fun buildGoogleApiClient() {
-        mGoogleApiClient = GoogleApiClient
-                .Builder(activity)
+        mGoogleApiClient = GoogleApiClient.Builder(activity)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
