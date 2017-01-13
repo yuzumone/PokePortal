@@ -9,6 +9,11 @@
 - Create a database of PokeStop and Gym location
 - Display PokeStop and Gym marker on Google map
 
+## ScreenShot
+| map | register | delete |
+| --- | --- | --- |
+| ![](./assets/screenshots/Screenshot_map.png) | ![](./assets/screenshots/Screenshot_register.png) | ![](./assets/screenshots/Screenshot_delete.png) |
+
 ## Libraries
 This project uses some libraries.
 
