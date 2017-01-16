@@ -18,6 +18,10 @@
 package net.yuzumone.pokeportal.activity
 
 import android.location.Location
+import android.nfc.NdefMessage
+import android.nfc.NdefRecord
+import android.nfc.NfcAdapter
+import android.nfc.NfcEvent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
@@ -42,14 +46,17 @@ import net.yuzumone.pokeportal.listener.OnLocation
 import net.yuzumone.pokeportal.util.ResourceUtil
 import org.json.JSONArray
 import org.json.JSONObject
+import java.nio.charset.Charset
 
-class MainActivity : AppCompatActivity(), OnLocation, OnMapReadyCallback, OnCreatePortal, OnDeletePortal {
+class MainActivity : AppCompatActivity(), OnLocation, OnMapReadyCallback, OnCreatePortal,
+        OnDeletePortal, NfcAdapter.CreateNdefMessageCallback {
 
     protected val TAG = "MainActivity"
     lateinit private var mLocation: LatLng
     lateinit private var mActionsMenu: FloatingActionsMenu
     private var mGoogleMap: GoogleMap? = null
     private var mDeleteMarker: Marker? = null
+    private lateinit var nfcAdapter: NfcAdapter
 
     override fun getLocation(location: Location) {
         Log.d(TAG, location.toString())
@@ -115,6 +122,19 @@ class MainActivity : AppCompatActivity(), OnLocation, OnMapReadyCallback, OnCrea
 
         val realmConfig = RealmConfiguration.Builder(this).build()
         Realm.setDefaultConfiguration(realmConfig)
+
+        nfcAdapter = NfcAdapter.getDefaultAdapter(this)
+        nfcAdapter.setNdefPushMessageCallback(this, this)
+    }
+
+    public override fun onResume() {
+        super.onResume()
+        if (NfcAdapter.ACTION_NDEF_DISCOVERED == intent.action) {
+            val rawMsgs = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES)
+            val msg = rawMsgs[0] as NdefMessage
+            val json = msg.records[0].payload.toString(Charset.forName("UTF-8"))
+            storePortal(json)
+        }
     }
 
     fun initializeActionsMenu() {
@@ -221,4 +241,17 @@ class MainActivity : AppCompatActivity(), OnLocation, OnMapReadyCallback, OnCrea
         }
     }
 
+    override fun createNdefMessage(event: NfcEvent?): NdefMessage {
+        return NdefMessage(
+                arrayOf(createMimeRecord(
+                        "application/com.example.android.beam", createJSON().toByteArray()))
+        )
+    }
+
+    private fun createMimeRecord(mimeType: String, payload: ByteArray): NdefRecord {
+        val mimeBytes = mimeType.toByteArray(Charset.forName("UTF-8"))
+        val mimeRecord = NdefRecord(
+                NdefRecord.TNF_MIME_MEDIA, mimeBytes, ByteArray(0), payload)
+        return mimeRecord
+    }
 }
