@@ -30,16 +30,18 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import io.realm.Realm
 import io.realm.RealmConfiguration
-import net.yuzumone.pokeportal.fragment.CreatePortalFragment
-import net.yuzumone.pokeportal.fragment.DeletePortalFragment
-import net.yuzumone.pokeportal.fragment.LocationFragment
 import net.yuzumone.pokeportal.R
 import net.yuzumone.pokeportal.data.Gym
 import net.yuzumone.pokeportal.data.PokeStop
+import net.yuzumone.pokeportal.fragment.CreatePortalFragment
+import net.yuzumone.pokeportal.fragment.DeletePortalFragment
+import net.yuzumone.pokeportal.fragment.LocationFragment
 import net.yuzumone.pokeportal.listener.OnCreatePortal
 import net.yuzumone.pokeportal.listener.OnDeletePortal
 import net.yuzumone.pokeportal.listener.OnLocation
 import net.yuzumone.pokeportal.util.ResourceUtil
+import org.json.JSONArray
+import org.json.JSONObject
 
 class MainActivity : AppCompatActivity(), OnLocation, OnMapReadyCallback, OnCreatePortal, OnDeletePortal {
 
@@ -177,4 +179,32 @@ class MainActivity : AppCompatActivity(), OnLocation, OnMapReadyCallback, OnCrea
             }
         }
     }
+
+    private fun createJSON() : String {
+        val json = JSONObject()
+        val stopJson = JSONArray()
+        val gymJson = JSONArray()
+        Realm.getDefaultInstance().use { realm ->
+            realm.where(PokeStop::class.java).findAll().forEach {
+                val stop = JSONObject()
+                stop.put("name", it.name)
+                stop.put("latitude", it.latitude)
+                stop.put("longitude", it.longitude)
+                stop.put("uuid", it.uuid)
+                stopJson.put(stop)
+            }
+            realm.where(Gym::class.java).findAll().forEach {
+                val gym = JSONObject()
+                gym.put("name", it.name)
+                gym.put("latitude", it.latitude)
+                gym.put("longitude", it.longitude)
+                gym.put("uuid", it.uuid)
+                gymJson.put(gym)
+            }
+        }
+        json.put("stop", stopJson)
+        json.put("gym", gymJson)
+        return json.toString()
+    }
+
 }
