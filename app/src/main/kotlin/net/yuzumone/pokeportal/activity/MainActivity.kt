@@ -18,6 +18,10 @@
 package net.yuzumone.pokeportal.activity
 
 import android.location.Location
+import android.nfc.NdefMessage
+import android.nfc.NdefRecord
+import android.nfc.NfcAdapter
+import android.nfc.NfcEvent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
@@ -30,24 +34,29 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import io.realm.Realm
 import io.realm.RealmConfiguration
-import net.yuzumone.pokeportal.fragment.CreatePortalFragment
-import net.yuzumone.pokeportal.fragment.DeletePortalFragment
-import net.yuzumone.pokeportal.fragment.LocationFragment
 import net.yuzumone.pokeportal.R
 import net.yuzumone.pokeportal.data.Gym
 import net.yuzumone.pokeportal.data.PokeStop
+import net.yuzumone.pokeportal.fragment.CreatePortalFragment
+import net.yuzumone.pokeportal.fragment.DeletePortalFragment
+import net.yuzumone.pokeportal.fragment.LocationFragment
 import net.yuzumone.pokeportal.listener.OnCreatePortal
 import net.yuzumone.pokeportal.listener.OnDeletePortal
 import net.yuzumone.pokeportal.listener.OnLocation
 import net.yuzumone.pokeportal.util.ResourceUtil
+import org.json.JSONArray
+import org.json.JSONObject
+import java.nio.charset.Charset
 
-class MainActivity : AppCompatActivity(), OnLocation, OnMapReadyCallback, OnCreatePortal, OnDeletePortal {
+class MainActivity : AppCompatActivity(), OnLocation, OnMapReadyCallback, OnCreatePortal,
+        OnDeletePortal, NfcAdapter.CreateNdefMessageCallback {
 
     protected val TAG = "MainActivity"
     lateinit private var mLocation: LatLng
     lateinit private var mActionsMenu: FloatingActionsMenu
     private var mGoogleMap: GoogleMap? = null
     private var mDeleteMarker: Marker? = null
+    private lateinit var nfcAdapter: NfcAdapter
 
     override fun getLocation(location: Location) {
         Log.d(TAG, location.toString())
@@ -113,6 +122,19 @@ class MainActivity : AppCompatActivity(), OnLocation, OnMapReadyCallback, OnCrea
 
         val realmConfig = RealmConfiguration.Builder(this).build()
         Realm.setDefaultConfiguration(realmConfig)
+
+        nfcAdapter = NfcAdapter.getDefaultAdapter(this)
+        nfcAdapter.setNdefPushMessageCallback(this, this)
+    }
+
+    public override fun onResume() {
+        super.onResume()
+        if (NfcAdapter.ACTION_NDEF_DISCOVERED == intent.action) {
+            val rawMsgs = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES)
+            val msg = rawMsgs[0] as NdefMessage
+            val json = msg.records[0].payload.toString(Charset.forName("UTF-8"))
+            storePortal(json)
+        }
     }
 
     fun initializeActionsMenu() {
@@ -176,5 +198,60 @@ class MainActivity : AppCompatActivity(), OnLocation, OnMapReadyCallback, OnCrea
                         .equalTo("uuid", uuid).findAll().clear()
             }
         }
+    }
+
+    private fun createJSON() : String {
+        val json = JSONObject()
+        val stopJson = JSONArray()
+        val gymJson = JSONArray()
+        Realm.getDefaultInstance().use { realm ->
+            realm.where(PokeStop::class.java).findAll().forEach {
+                val stop = JSONObject()
+                stop.put("name", it.name)
+                stop.put("latitude", it.latitude)
+                stop.put("longitude", it.longitude)
+                stop.put("uuid", it.uuid)
+                stopJson.put(stop)
+            }
+            realm.where(Gym::class.java).findAll().forEach {
+                val gym = JSONObject()
+                gym.put("name", it.name)
+                gym.put("latitude", it.latitude)
+                gym.put("longitude", it.longitude)
+                gym.put("uuid", it.uuid)
+                gymJson.put(gym)
+            }
+        }
+        json.put("stop", stopJson)
+        json.put("gym", gymJson)
+        return json.toString()
+    }
+
+    private fun storePortal(json: String) {
+        val jsonObject = JSONObject(json)
+        val stops = jsonObject.getJSONArray("stop")
+        val gyms = jsonObject.getJSONArray("gym")
+        Realm.getDefaultInstance().use { realm ->
+            realm.executeTransaction {
+                for (i in 0..stops.length() - 1)
+                    realm.createObjectFromJson(PokeStop::class.java, stops.getJSONObject(i))
+                for (i in 0..gyms.length() - 1)
+                    realm.createObjectFromJson(Gym::class.java, gyms.getJSONObject(i))
+            }
+        }
+    }
+
+    override fun createNdefMessage(event: NfcEvent?): NdefMessage {
+        return NdefMessage(
+                arrayOf(createMimeRecord(
+                        "application/com.example.android.beam", createJSON().toByteArray()))
+        )
+    }
+
+    private fun createMimeRecord(mimeType: String, payload: ByteArray): NdefRecord {
+        val mimeBytes = mimeType.toByteArray(Charset.forName("UTF-8"))
+        val mimeRecord = NdefRecord(
+                NdefRecord.TNF_MIME_MEDIA, mimeBytes, ByteArray(0), payload)
+        return mimeRecord
     }
 }
