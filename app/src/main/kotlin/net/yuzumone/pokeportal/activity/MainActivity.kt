@@ -207,4 +207,18 @@ class MainActivity : AppCompatActivity(), OnLocation, OnMapReadyCallback, OnCrea
         return json.toString()
     }
 
+    private fun storePortal(json: String) {
+        val jsonObject = JSONObject(json)
+        val stops = jsonObject.getJSONArray("stop")
+        val gyms = jsonObject.getJSONArray("gym")
+        Realm.getDefaultInstance().use { realm ->
+            realm.executeTransaction {
+                for (i in 0..stops.length() - 1)
+                    realm.createObjectFromJson(PokeStop::class.java, stops.getJSONObject(i))
+                for (i in 0..gyms.length() - 1)
+                    realm.createObjectFromJson(Gym::class.java, gyms.getJSONObject(i))
+            }
+        }
+    }
+
 }
