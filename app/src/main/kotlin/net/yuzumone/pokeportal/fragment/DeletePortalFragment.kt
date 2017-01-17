@@ -26,9 +26,9 @@ import net.yuzumone.pokeportal.listener.OnDeletePortal
 
 class DeletePortalFragment : DialogFragment() {
 
-    lateinit private var mListener: OnDeletePortal
-    lateinit private var mName: String
-    lateinit private var mUuid: String
+    lateinit private var listener: OnDeletePortal
+    lateinit private var name: String
+    lateinit private var uuid: String
 
     companion object {
         val ARG_NAME = "name"
@@ -49,20 +49,20 @@ class DeletePortalFragment : DialogFragment() {
         if (context !is OnDeletePortal) {
             throw ClassCastException("Don't implement Listener.")
         }
-        mListener = context
+        listener = context
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        mName = arguments.getString(ARG_NAME)
-        mUuid = arguments.getString(ARG_UUID)
+        name = arguments.getString(ARG_NAME)
+        uuid = arguments.getString(ARG_UUID)
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         return AlertDialog.Builder(activity)
-                .setMessage("Delete $mName?")
+                .setMessage("Delete $name?")
                 .setPositiveButton("OK") { dialog, which ->
-                    mListener.deletePortal(mUuid)
+                    listener.deletePortal(uuid)
                     dismiss()
                 }
                 .setNegativeButton("CANCEL") { dialog, which -> dismiss() }

@@ -24,7 +24,6 @@ import android.nfc.NfcAdapter
 import android.nfc.NfcEvent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import com.getbase.floatingactionbutton.FloatingActionButton
 import com.getbase.floatingactionbutton.FloatingActionsMenu
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -51,16 +50,14 @@ import java.nio.charset.Charset
 class MainActivity : AppCompatActivity(), OnLocation, OnMapReadyCallback, OnCreatePortal,
         OnDeletePortal, NfcAdapter.CreateNdefMessageCallback {
 
-    protected val TAG = "MainActivity"
-    lateinit private var mLocation: LatLng
-    lateinit private var mActionsMenu: FloatingActionsMenu
-    private var mGoogleMap: GoogleMap? = null
-    private var mDeleteMarker: Marker? = null
+    private lateinit var location: LatLng
+    private lateinit var actionsMenu: FloatingActionsMenu
+    private lateinit var googleMap: GoogleMap
+    private lateinit var deleteMarker: Marker
     private lateinit var nfcAdapter: NfcAdapter
 
     override fun getLocation(location: Location) {
-        Log.d(TAG, location.toString())
-        mLocation = LatLng(location.latitude, location.longitude)
+        this.location = LatLng(location.latitude, location.longitude)
         val fragment = SupportMapFragment()
         fragment.getMapAsync(this)
         supportFragmentManager.beginTransaction().add(R.id.content, fragment).commit()
@@ -68,46 +65,46 @@ class MainActivity : AppCompatActivity(), OnLocation, OnMapReadyCallback, OnCrea
     }
 
     override fun onMapReady(googleMap: GoogleMap?) {
-        googleMap?.let {
-            mGoogleMap = it
+        googleMap?.let { map ->
+            this.googleMap = map
             val cameraPosition = CameraPosition
                     .builder()
-                    .target(mLocation)
+                    .target(location)
                     .zoom(15f)
                     .build()
-            it.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
-            it.setOnMarkerClickListener { marker ->
-                mDeleteMarker = marker
+            map.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
+            map.setOnMarkerClickListener { marker ->
+                deleteMarker = marker
                 val fragment = DeletePortalFragment.newInstance(marker.title, marker.snippet)
                 fragment.show(supportFragmentManager, "delete")
                 true
             }
-            loadPortal(it)
+            loadPortal(map)
         }
     }
 
-    fun loadPortal(googleMap: GoogleMap) {
+    private fun loadPortal(googleMap: GoogleMap) {
         val pokeStopIcon = BitmapDescriptorFactory
                 .fromBitmap(ResourceUtil.getBitmap(this, R.drawable.ic_marker_poke_stop))
         val gymIcon = BitmapDescriptorFactory
                 .fromBitmap(ResourceUtil.getBitmap(this, R.drawable.ic_marker_gym))
         Realm.getDefaultInstance().use { realm ->
-            realm.where(PokeStop::class.java).findAll().forEach {
+            realm.where(PokeStop::class.java).findAll().forEach { stop ->
                 val markerOption = MarkerOptions()
-                        .title(it.name)
-                        .position(LatLng(it.latitude, it.longitude))
+                        .title(stop.name)
+                        .position(LatLng(stop.latitude, stop.longitude))
                         .icon(pokeStopIcon)
                         .anchor(0.5f, 0.5f)
-                        .snippet(it.uuid)
+                        .snippet(stop.uuid)
                 googleMap.addMarker(markerOption)
             }
-            realm.where(Gym::class.java).findAll().forEach {
+            realm.where(Gym::class.java).findAll().forEach { gym ->
                 val markerOption = MarkerOptions()
-                        .title(it.name)
-                        .position(LatLng(it.latitude, it.longitude))
+                        .title(gym.name)
+                        .position(LatLng(gym.latitude, gym.longitude))
                         .icon(gymIcon)
                         .anchor(0.5f, 0.5f)
-                        .snippet(it.uuid)
+                        .snippet(gym.uuid)
                 googleMap.addMarker(markerOption)
             }
         }
@@ -116,7 +113,7 @@ class MainActivity : AppCompatActivity(), OnLocation, OnMapReadyCallback, OnCrea
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        mActionsMenu = findViewById(R.id.actions_menu) as FloatingActionsMenu
+        actionsMenu = findViewById(R.id.actions_menu) as FloatingActionsMenu
         val fragment = LocationFragment()
         fragment.show(supportFragmentManager, "location")
 
@@ -137,59 +134,55 @@ class MainActivity : AppCompatActivity(), OnLocation, OnMapReadyCallback, OnCrea
         }
     }
 
-    fun initializeActionsMenu() {
+    private fun initializeActionsMenu() {
         val pokeStopMenu = FloatingActionButton(baseContext)
         pokeStopMenu.setIcon(R.drawable.ic_menu_poke_stop)
         pokeStopMenu.title = "PokeStop"
         pokeStopMenu.size = FloatingActionButton.SIZE_MINI
         pokeStopMenu.setOnClickListener {
-            val fragment = CreatePortalFragment.newPokeStopInstance(mLocation)
+            val fragment = CreatePortalFragment.newPokeStopInstance(location)
             fragment.show(supportFragmentManager, "poke_stop")
-            mActionsMenu.collapse()
+            actionsMenu.collapse()
         }
-        mActionsMenu.addButton(pokeStopMenu)
+        actionsMenu.addButton(pokeStopMenu)
         val gymMenu = FloatingActionButton(baseContext)
         gymMenu.setIcon(R.drawable.ic_menu_gym)
         gymMenu.title = "Gym"
         gymMenu.size = FloatingActionButton.SIZE_MINI
         gymMenu.setOnClickListener {
-            val fragment = CreatePortalFragment.newGymInstance(mLocation)
+            val fragment = CreatePortalFragment.newGymInstance(location)
             fragment.show(supportFragmentManager, "gym")
-            mActionsMenu.collapse()
+            actionsMenu.collapse()
         }
-        mActionsMenu.addButton(gymMenu)
+        actionsMenu.addButton(gymMenu)
     }
 
     override fun createGym(gym: Gym) {
-        mGoogleMap?.let {
-            val gymIcon = BitmapDescriptorFactory
-                    .fromBitmap(ResourceUtil.getBitmap(this, R.drawable.ic_marker_gym))
-            val markerOption = MarkerOptions()
-                    .title(gym.name)
-                    .position(LatLng(gym.latitude, gym.longitude))
-                    .icon(gymIcon)
-                    .anchor(0.5f, 0.5f)
-                    .snippet(gym.uuid)
-            it.addMarker(markerOption)
-        }
+        val gymIcon = BitmapDescriptorFactory
+                .fromBitmap(ResourceUtil.getBitmap(this, R.drawable.ic_marker_gym))
+        val markerOption = MarkerOptions()
+                .title(gym.name)
+                .position(LatLng(gym.latitude, gym.longitude))
+                .icon(gymIcon)
+                .anchor(0.5f, 0.5f)
+                .snippet(gym.uuid)
+        googleMap.addMarker(markerOption)
     }
 
     override fun createPokeStop(pokeStop: PokeStop) {
-        mGoogleMap?.let {
-            val pokeStopIcon = BitmapDescriptorFactory
-                    .fromBitmap(ResourceUtil.getBitmap(this, R.drawable.ic_marker_poke_stop))
-            val markerOption = MarkerOptions()
-                    .title(pokeStop.name)
-                    .position(LatLng(pokeStop.latitude, pokeStop.longitude))
-                    .icon(pokeStopIcon)
-                    .anchor(0.5f, 0.5f)
-                    .snippet(pokeStop.uuid)
-            it.addMarker(markerOption)
-        }
+        val pokeStopIcon = BitmapDescriptorFactory
+                .fromBitmap(ResourceUtil.getBitmap(this, R.drawable.ic_marker_poke_stop))
+        val markerOption = MarkerOptions()
+                .title(pokeStop.name)
+                .position(LatLng(pokeStop.latitude, pokeStop.longitude))
+                .icon(pokeStopIcon)
+                .anchor(0.5f, 0.5f)
+                .snippet(pokeStop.uuid)
+        googleMap.addMarker(markerOption)
     }
 
     override fun deletePortal(uuid: String) {
-        mDeleteMarker?.let { it.remove() }
+        deleteMarker.remove()
         Realm.getDefaultInstance().use { realm ->
             realm.executeTransaction {
                 realm.where(PokeStop::class.java)
