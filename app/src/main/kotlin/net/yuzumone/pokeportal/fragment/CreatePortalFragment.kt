@@ -44,17 +44,16 @@ import java.util.*
 
 class CreatePortalFragment : DialogFragment(), OnMapReadyCallback {
 
-    lateinit private var mListener: OnCreatePortal
-    lateinit private var mDialog: Dialog
-    lateinit private var mToolbar: Toolbar
-    lateinit private var mEditText: EditText
-    lateinit private var mPortalLocation: LatLng
+    private lateinit var listener: OnCreatePortal
+    private lateinit var toolbar: Toolbar
+    private lateinit var editText: EditText
+    private lateinit var portalLocation: LatLng
 
     /*
      * true: PokeStop
      * false: Gym
      */
-    private var mPortalType: Boolean = true
+    private var portalType: Boolean = true
 
     companion object {
         val ARG_LOCATION = "location"
@@ -83,41 +82,40 @@ class CreatePortalFragment : DialogFragment(), OnMapReadyCallback {
         if (context !is OnCreatePortal) {
             throw ClassCastException("Don't implement Listener.")
         }
-        mListener = context
+        listener = context
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        mPortalLocation = arguments.getParcelable(ARG_LOCATION)
-        mPortalType = arguments.getBoolean(ARG_TYPE)
+        portalLocation = arguments.getParcelable(ARG_LOCATION)
+        portalType = arguments.getBoolean(ARG_TYPE)
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        mDialog = Dialog(activity)
-        mDialog.window.requestFeature(Window.FEATURE_NO_TITLE)
-        mDialog.setContentView(R.layout.fragment_create_portal)
-        mDialog.window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
-        mDialog.window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT,
+        val dialog = Dialog(activity)
+        dialog.window.requestFeature(Window.FEATURE_NO_TITLE)
+        dialog.setContentView(R.layout.fragment_create_portal)
+        dialog.window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+        dialog.window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT)
-        mToolbar = mDialog.findViewById(R.id.toolbar) as Toolbar
-        mEditText = mDialog.findViewById(R.id.edit_name) as EditText
-
-        return mDialog
+        toolbar = dialog.findViewById(R.id.toolbar) as Toolbar
+        editText = dialog.findViewById(R.id.edit_name) as EditText
+        return dialog
     }
 
     override fun onMapReady(googleMap: GoogleMap?) {
-        googleMap?.let {
-            it.addMarker(MarkerOptions().position(mPortalLocation).draggable(true))
+        googleMap?.let { map ->
+            map.addMarker(MarkerOptions().position(portalLocation).draggable(true))
             val cameraPosition = CameraPosition
                     .builder()
-                    .target(mPortalLocation)
+                    .target(portalLocation)
                     .zoom(15f)
                     .build()
-            it.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
-            it.setOnMarkerDragListener(object : GoogleMap.OnMarkerDragListener {
+            map.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
+            map.setOnMarkerDragListener(object : GoogleMap.OnMarkerDragListener {
                 override fun onMarkerDragEnd(marker: Marker?) {
-                    marker?.let {
-                        mPortalLocation = it.position
+                    marker?.let { marker ->
+                        portalLocation = marker.position
                     }
                 }
 
@@ -137,42 +135,42 @@ class CreatePortalFragment : DialogFragment(), OnMapReadyCallback {
         val mapFragment = fragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        mToolbar.setNavigationIcon(R.drawable.ic_action_back)
-        mToolbar.setNavigationOnClickListener { dismiss() }
-        mToolbar.inflateMenu(R.menu.menu_create_portal)
-        mToolbar.setOnMenuItemClickListener { item ->
+        toolbar.setNavigationIcon(R.drawable.ic_action_back)
+        toolbar.setNavigationOnClickListener { dismiss() }
+        toolbar.inflateMenu(R.menu.menu_create_portal)
+        toolbar.setOnMenuItemClickListener { item ->
             when (item?.itemId) {
                 R.id.menu_save -> savePortal()
             }
             false
         }
-        if (mPortalType) {
-            mToolbar.title = "PokeStop"
-            mEditText.hint = "PokeStop Name"
+        if (portalType) {
+            toolbar.title = "PokeStop"
+            editText.hint = "PokeStop Name"
         } else {
-            mToolbar.title = "Gym"
-            mEditText.hint = "Gym Name"
+            toolbar.title = "Gym"
+            editText.hint = "Gym Name"
         }
     }
 
     private fun savePortal() {
         Realm.getDefaultInstance().use { realm ->
             realm.executeTransaction {
-                if (mPortalType) {
+                if (portalType) {
                     val pokeStop = realm.createObject(PokeStop::class.java)
                     pokeStop.uuid = UUID.randomUUID().toString()
-                    pokeStop.name = mEditText.text.toString()
-                    pokeStop.latitude = mPortalLocation.latitude
-                    pokeStop.longitude = mPortalLocation.longitude
-                    mListener.createPokeStop(pokeStop)
+                    pokeStop.name = editText.text.toString()
+                    pokeStop.latitude = portalLocation.latitude
+                    pokeStop.longitude = portalLocation.longitude
+                    listener.createPokeStop(pokeStop)
                     Toast.makeText(activity, "Create ${pokeStop.name}", Toast.LENGTH_LONG).show()
                 } else {
                     val gym = realm.createObject(Gym::class.java)
                     gym.uuid = UUID.randomUUID().toString()
-                    gym.name = mEditText.text.toString()
-                    gym.latitude = mPortalLocation.latitude
-                    gym.longitude = mPortalLocation.longitude
-                    mListener.createGym(gym)
+                    gym.name = editText.text.toString()
+                    gym.latitude = portalLocation.latitude
+                    gym.longitude = portalLocation.longitude
+                    listener.createGym(gym)
                     Toast.makeText(activity, "Create ${gym.name}", Toast.LENGTH_LONG).show()
                 }
             }
