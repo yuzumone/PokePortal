@@ -136,23 +136,27 @@ class MainActivity : AppCompatActivity(), OnLocation, OnMapReadyCallback, OnCrea
 
     private fun initializeActionsMenu() {
         val pokeStopMenu = FloatingActionButton(baseContext)
-        pokeStopMenu.setIcon(R.drawable.ic_menu_poke_stop)
-        pokeStopMenu.title = "PokeStop"
-        pokeStopMenu.size = FloatingActionButton.SIZE_MINI
-        pokeStopMenu.setOnClickListener {
-            val fragment = CreatePortalFragment.newPokeStopInstance(location)
-            fragment.show(supportFragmentManager, "poke_stop")
-            actionsMenu.collapse()
+        pokeStopMenu.apply {
+            setIcon(R.drawable.ic_menu_poke_stop)
+            title = "PokeStop"
+            size = FloatingActionButton.SIZE_MINI
+            setOnClickListener {
+                val fragment = CreatePortalFragment.newPokeStopInstance(location)
+                fragment.show(supportFragmentManager, "poke_stop")
+                actionsMenu.collapse()
+            }
         }
         actionsMenu.addButton(pokeStopMenu)
         val gymMenu = FloatingActionButton(baseContext)
-        gymMenu.setIcon(R.drawable.ic_menu_gym)
-        gymMenu.title = "Gym"
-        gymMenu.size = FloatingActionButton.SIZE_MINI
-        gymMenu.setOnClickListener {
-            val fragment = CreatePortalFragment.newGymInstance(location)
-            fragment.show(supportFragmentManager, "gym")
-            actionsMenu.collapse()
+        gymMenu.apply {
+            setIcon(R.drawable.ic_menu_gym)
+            title = "Gym"
+            size = FloatingActionButton.SIZE_MINI
+            setOnClickListener {
+                val fragment = CreatePortalFragment.newGymInstance(location)
+                fragment.show(supportFragmentManager, "gym")
+                actionsMenu.collapse()
+            }
         }
         actionsMenu.addButton(gymMenu)
     }
