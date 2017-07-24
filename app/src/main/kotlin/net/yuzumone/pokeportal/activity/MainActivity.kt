@@ -241,7 +241,7 @@ class MainActivity : AppCompatActivity(), OnLocation, OnMapReadyCallback, OnCrea
     override fun createNdefMessage(event: NfcEvent?): NdefMessage {
         return NdefMessage(
                 arrayOf(createMimeRecord(
-                        "application/com.example.android.beam", createJSON().toByteArray()))
+                        "application/net.yuzumone.pokeportal", createJSON().toByteArray()))
         )
     }
 
