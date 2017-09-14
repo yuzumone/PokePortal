@@ -98,8 +98,8 @@ class CreatePortalFragment : DialogFragment(), OnMapReadyCallback {
         dialog.window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
         dialog.window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT)
-        toolbar = dialog.findViewById(R.id.toolbar) as Toolbar
-        editText = dialog.findViewById(R.id.edit_name) as EditText
+        toolbar = dialog.findViewById(R.id.toolbar)
+        editText = dialog.findViewById(R.id.edit_name)
         return dialog
     }
 

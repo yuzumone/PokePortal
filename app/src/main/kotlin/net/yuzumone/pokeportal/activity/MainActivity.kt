@@ -113,7 +113,7 @@ class MainActivity : AppCompatActivity(), OnLocation, OnMapReadyCallback, OnCrea
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        actionsMenu = findViewById(R.id.actions_menu) as FloatingActionsMenu
+        actionsMenu = findViewById(R.id.actions_menu)
         val fragment = LocationFragment()
         fragment.show(supportFragmentManager, "location")
 
