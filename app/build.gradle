@@ -1,5 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
+apply plugin: 'realm-android'
 
 android {
     compileSdkVersion 26
@@ -36,10 +37,5 @@ dependencies {
     compile "com.google.android.gms:play-services-location:$gms_version"
     compile "com.google.android.gms:play-services-maps:$gms_version"
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    compile 'io.realm:realm-android:0.81.1'
     compile 'com.getbase:floatingactionbutton:1.10.1'
-    kapt 'io.realm:realm-android:0.81.1'
-}
-repositories {
-    mavenCentral()
 }
