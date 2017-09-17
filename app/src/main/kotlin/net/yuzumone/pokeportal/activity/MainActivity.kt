@@ -117,7 +117,8 @@ class MainActivity : AppCompatActivity(), OnLocation, OnMapReadyCallback, OnCrea
         val fragment = LocationFragment()
         fragment.show(supportFragmentManager, "location")
 
-        val realmConfig = RealmConfiguration.Builder(this).build()
+        Realm.init(applicationContext)
+        val realmConfig = RealmConfiguration.Builder().build()
         Realm.setDefaultConfiguration(realmConfig)
 
         nfcAdapter = NfcAdapter.getDefaultAdapter(this)
