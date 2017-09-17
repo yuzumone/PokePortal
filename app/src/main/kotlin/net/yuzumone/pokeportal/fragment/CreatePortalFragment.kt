@@ -157,16 +157,16 @@ class CreatePortalFragment : DialogFragment(), OnMapReadyCallback {
         Realm.getDefaultInstance().use { realm ->
             realm.executeTransaction {
                 if (portalType) {
-                    val pokeStop = realm.createObject(PokeStop::class.java)
-                    pokeStop.uuid = UUID.randomUUID().toString()
+                    val uuid = UUID.randomUUID().toString()
+                    val pokeStop = realm.createObject(PokeStop::class.java, uuid)
                     pokeStop.name = editText.text.toString()
                     pokeStop.latitude = portalLocation.latitude
                     pokeStop.longitude = portalLocation.longitude
                     listener.createPokeStop(pokeStop)
                     Toast.makeText(activity, "Create ${pokeStop.name}", Toast.LENGTH_LONG).show()
                 } else {
-                    val gym = realm.createObject(Gym::class.java)
-                    gym.uuid = UUID.randomUUID().toString()
+                    val uuid = UUID.randomUUID().toString()
+                    val gym = realm.createObject(Gym::class.java, uuid)
                     gym.name = editText.text.toString()
                     gym.latitude = portalLocation.latitude
                     gym.longitude = portalLocation.longitude
