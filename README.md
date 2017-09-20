@@ -2,15 +2,15 @@
 [![platform android](https://img.shields.io/badge/platform-android-green.svg)](#)
 [![language kotlin](https://img.shields.io/badge/language-kotlin-green.svg)](#)
 [![minSdkVersion 21](https://img.shields.io/badge/minSdkVersion-21-red.svg)](#)
-[![compileSdkVersion 23](https://img.shields.io/badge/compileSdkVersion-25-yellow.svg)](#)
-[![version v1.0.0](https://img.shields.io/badge/version-v1.1.0-blue.svg)](#)
+[![compileSdkVersion 26](https://img.shields.io/badge/compileSdkVersion-26-yellow.svg)](#)
+[![version v1.1.1](https://img.shields.io/badge/version-v1.1.1-blue.svg)](#)
 
 ## Features
 - Create databases of PokeStop and Gym locations
 - Display PokeStop and Gym markers on Google map
 - Share portal locations using the Android Beam
 
-## ScreenShot
+## ScreenShots
 | map | register | delete |
 | --- | --- | --- |
 | ![](./assets/screenshots/Screenshot_map.png) | ![](./assets/screenshots/Screenshot_register.png) | ![](./assets/screenshots/Screenshot_delete.png) |
