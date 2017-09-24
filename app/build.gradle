@@ -2,6 +2,14 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'realm-android'
 
+def getSecretProperty(name) {
+    Properties properties = new Properties()
+    properties.load(project.rootProject.file('secret.properties').newDataInputStream())
+    return properties.getProperty(name.toString())
+}
+
+def MAP_API = getSecretProperty('MAP_API')
+
 android {
     compileSdkVersion 26
     buildToolsVersion "26.0.1"
@@ -13,6 +21,7 @@ android {
         versionCode 3
         versionName "1.1.1"
         multiDexEnabled true
+        manifestPlaceholders = [map_api: MAP_API]
     }
     buildTypes {
         release {

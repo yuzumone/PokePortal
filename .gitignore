@@ -11,3 +11,4 @@
 /gradlew.bat
 /local.properties
 keystore.jks
+secret.properties
